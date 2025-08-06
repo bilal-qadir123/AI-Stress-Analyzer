@@ -58,7 +58,7 @@ def receive_input():
         if not existing_user:
             return jsonify({'message': 'User not found'}), 404
 
-        stored_password = existing_user[3]  # password index
+        stored_password = existing_user[3]
         if password != stored_password:
             return jsonify({'message': 'Incorrect email or password'}), 401
 

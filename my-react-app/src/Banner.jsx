@@ -73,7 +73,7 @@ const Banner = () => {
             >
               <div className="relative h-3 bg-white/50 backdrop-blur-sm rounded-full shadow-inner overflow-hidden">
                 <motion.div
-                  className="absolute h-full bg-gradient-to-r from-sky-400 via-emerald-400 to-teal-400"
+                  className="absolute h-full bg-gradient-to-r from-red-400 via-emerald-400 to-teal-400"
                   initial={{ width: 0 }}
                   animate={{ width: '100%' }}
                   transition={{ 

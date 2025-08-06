@@ -40,7 +40,6 @@ const Questions = () => {
         alt="Logo" 
         style={{ width: "100%", height: "75%", objectFit: "cover", objectPosition: "50% 10%" }}
         />
-      {/* Black overlay */}
       <div 
         style={{
           position: "absolute",

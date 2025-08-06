@@ -12,7 +12,7 @@ const features = [
   {
     icon: <FaBrain className="text-4xl" />,
     title: "Cognitive Analysis",
-    content: "ML model trained on 50,000+ anonymized mental health assessments.",
+    content: "ML model trained on 800+ anonymized stress assessments.",
     color: "text-blue-500"
   },
   {

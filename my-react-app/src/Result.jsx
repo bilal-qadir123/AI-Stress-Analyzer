@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   FiActivity,
   FiSmile,
@@ -22,16 +22,71 @@ import { TbRobot } from "react-icons/tb";
 const Result = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const predictionText =
-    location.state?.predictionText || "Eustress (Moderate level)";
+  
+
   const issues = location.state?.high_values || [];
+  let predictionText = location.state?.predictionText || "Eustress (Moderate level)";
+if (issues.length > 5) {
+  predictionText = "Distress (Extremely high)";
+}
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPopup, setShowPopup] = useState(issues.length >= 9);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   console.log("Issues from Result: ", issues);
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-  const resultData = {
+  let initialValueGuess = 1;
+
+  if (issues.length === 0) {
+    initialValueGuess = 2;
+  } else if (issues.length === 1) {
+    initialValueGuess = 3;
+  } else if (issues.length === 2) {
+    initialValueGuess = 4;
+  } else if (issues.length === 3) {
+    initialValueGuess = 5;
+  } else if (issues.length === 4) {
+    initialValueGuess = 6;
+  } else if (issues.length === 5) {
+    initialValueGuess = 7;
+  } else if (issues.length === 6) {
+    initialValueGuess = 8;
+  } else if (issues.length === 7 || issues.length === 8) {
+    initialValueGuess = 9;
+  } else if (issues.length >= 9) {
+    initialValueGuess = 10;
+  }
+
+  const [value] = useState(initialValueGuess);
+  const initialValue = value;
+
+  console.log("Value:", initialValue);
+  
+
+  const [level, setlevel] = useState(0);
+
+  useEffect(() => {
+    if (issues.length >= 9) {
+      setShowPopup(true);
+      const timer = setTimeout(() => setShowPopup(false), 5000); // hide after 6 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [issues.length]);  
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setlevel(initialValue * 10); // 1–10 → 10%–100%
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [initialValue]);
+
+  const START_ANGLE = -78; // instead of -90
+const END_ANGLE = 120;    // keep end at 90
+const angle = START_ANGLE + (level / 100) * (END_ANGLE - START_ANGLE);
+
+const resultData = {
     "Eustress (Moderate level)": {
       title: "Productive Stress Level",
       icon: <FiActivity className="w-12 h-12" />,
@@ -107,6 +162,7 @@ const Result = () => {
       ],
     },
   };
+
   const handleRedirect = () => {
     if (predictionText.includes("Eustress")) {
       window.location.href = "https://positivepsychology.com/what-is-eustress/";
@@ -120,7 +176,7 @@ const Result = () => {
   };
 
   const { title, icon, color, desc, problems, solutions } =
-    resultData[predictionText] || resultData["Eustress (Moderate level)"];
+  resultData[predictionText] || resultData["Eustress (Moderate level)"] || {};
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -133,62 +189,229 @@ const Result = () => {
       className="min-h-screen bg-gradient-to-b"
     >
       <HeaderBlue />
-
+  
       <div className="max-w-6xl mx-auto mt-12 px-4 py-12">
         <div className="grid gap-8 md:grid-cols-2">
-          <motion.div
-            initial={{ y: 20 }}
-            animate={{ y: 0 }}
-            className={`p-8 rounded-2xl ${color} text-white backdrop-blur-lg shadow-xl`}
-          >
-            <div className="flex flex-col justify-between h-full">
-              <div>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="p-3 bg-white/20 rounded-xl">{icon}</div>
-                  <h2 className="text-3xl font-bold">{title}</h2>
-                </div>
-                <p className="text-lg mb-6">
-                  <span className="text-left"> {desc} </span>
-                </p>
-              </div>
-              {issues.length > 3 && !predictionText.includes("Distress") && (
-                <div className="flex items-center gap-4 p-6 mt-[-7rem] bg-red-500 backdrop-blur-sm border border-red-600 rounded-lg shadow-md">
-                  <div className="shrink-0 text-red-500 p-4 bg-white rounded-xl shadow-inner">
-                    <FiAlertTriangle className="text-4xl" />
+          
+          <div className="relative h-full">
+            <motion.div
+              initial={{ y: 20 }}
+              animate={{ y: 0 }}
+              className={`rounded-2xl ${color} text-white backdrop-blur-lg shadow-xl h-full`}
+              style={{
+                transformStyle: "preserve-3d",
+                perspective: "1000px",
+                height: "100%",
+              }}
+            >
+              
+              <button
+                onClick={() => setIsFlipped(!isFlipped)}
+                className="absolute top-4 right-4 z-10 p-2 bg-white/20 rounded-full hover:bg-white/30 transition"
+              >
+                {isFlipped ? (
+                  <FiArrowLeft className="w-5 h-5" />
+                ) : (
+                  <FiAlertCircle className="w-5 h-5" />
+                )}
+              </button>
+  
+              
+              <motion.div
+                className="p-8 h-full flex flex-col justify-between"
+                initial={false}
+                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                transition={{ duration: 0.6 }}
+                style={{
+                  backfaceVisibility: "hidden",
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                <div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-white/20 rounded-xl">{icon}</div>
+                    <h2 className="text-3xl font-bold">{title}</h2>
                   </div>
-                  <p className="text-black text-md leading-tight text-left">
-                    <strong> Warning </strong>: The increased warning stress signs in the analysis indicate an alarming situation.
+  
+                  <p className="text-lg mb-6">
+                    <span className="text-left"> {desc} </span>
                   </p>
                 </div>
-              )}
-              { predictionText.includes("Distress") && ( 
-                <div className="flex items-center gap-4 p-6 mt-[-7rem] bg-white backdrop-blur-sm border border-red-500 rounded-lg shadow-md">
-                <div className="shrink-0 text-red-500 p-4 bg-white rounded-xl shadow-inner">
-                  <FiAlertTriangle className="text-4xl" />
+                <div className="semicircle-gauge mb-40">
+                  <svg width="472" height="217.69">
+                    <g transform="translate(59.72, 28.48)">
+                      <g className="doughnut" transform="translate(176.28, 176.28)">
+                        <g className="subArc">
+                          <path
+                            d="M-168.661,-9.018A7,7,0,0,1,-175.489,-16.679A176.28,176.28,0,0,1,-99.83,-145.288A7,7,0,0,1,-89.817,-143.041L-79.087,-124.613A7,7,0,0,1,-81.11,-115.364A141.024,141.024,0,0,0,-140.24,-14.853A7,7,0,0,1,-147.341,-8.591Z"
+                            style={{ fill: "rgb(91, 225, 44)" }}
+                          />
+                        </g>
+                        <g className="subArc">
+                          <path
+                            d="M-80.063,-148.72A7,7,0,0,1,-77.074,-158.538A176.28,176.28,0,0,1,72.121,-160.851A7,7,0,0,1,75.413,-151.131L65.26,-132.379A7,7,0,0,1,56.309,-129.295A141.024,141.024,0,0,0,-60.291,-127.486A7,7,0,0,1,-69.333,-130.292Z"
+                            style={{ fill: "rgb(245, 205, 25)" }}
+                          />
+                        </g>
+                        <g className="subArc">
+                          <path
+                            d="M85.338,-145.757A7,7,0,0,1,95.276,-148.314A176.28,176.28,0,0,1,175.489,-16.679A7,7,0,0,1,168.661,-9.018L147.341,-8.591A7,7,0,0,1,140.24,-14.853A141.024,141.024,0,0,0,77.493,-117.824A7,7,0,0,1,75.184,-127.006Z"
+                            style={{ fill: "rgb(234, 66, 40)" }}
+                          />
+                        </g>
+                      </g>
+  
+                      <g transform="translate(176.28, 176.28)">
+                        <g
+                          className="pointer"
+                          style={{
+                            transform: `rotate(${angle}deg)`,
+                            transformOrigin: `0px -7.9296px`,
+                            transition: "transform 1.5s ease-out",
+                          }}
+                        >
+                          <path d="M -13.650679954660944 0.14338962066828653 L -62.81367453793281 -114.14172316417864 L 13.650679954660944 -16.002589620668285" fill="#5A5A5A" />
+                          <circle cx="0" cy="-7.9296" r="15.8592" fill="#5A5A5A" />
+                        </g>
+                      </g>
+  
+                      <g className="value-text" transform="translate(176.28, 137.52)">
+                        <text
+                          transform="rotate(0)"
+                          style={{
+                            fontSize: "41.63px",
+                            fill: "#fff",
+                            textShadow:
+                              "black 1px 0.5px 0px, black 0px 0px 0.03em, black 0px 0px 0.01em",
+                            textAnchor: "middle",
+                          }}
+                        >
+                          {level / 10}
+                        </text>
+                      </g>
+  
+                      <path
+                        className="tick-line"
+                        d="M-2.978,173.068L-9.978,173.068"
+                        stroke="rgb(173 172 171)"
+                        strokeWidth="1"
+                        fill="none"
+                      />
+                      <g className="tick-value" transform="translate(-17.98, 175.83)">
+                        <text
+                          transform="rotate(0)"
+                          style={{
+                            fontSize: "10px",
+                            fill: "rgb(173, 172, 171)",
+                            textAnchor: "end",
+                          }}
+                        >
+                          0%
+                        </text>
+                      </g>
+                      <path
+                        className="tick-line"
+                        d="M355.538,173.068L362.538,173.068"
+                        stroke="rgb(173 172 171)"
+                        strokeWidth="1"
+                        fill="none"
+                      />
+                      <g className="tick-value" transform="translate(370.54, 175.83)">
+                        <text
+                          transform="rotate(0)"
+                          style={{
+                            fontSize: "10px",
+                            fill: "rgb(173, 172, 171)",
+                            textAnchor: "start",
+                          }}
+                        >
+                          100%
+                        </text>
+                      </g>
+                    </g>
+                  </svg>
                 </div>
-                <p className="text-black text-md leading-tight text-left">
-                  <strong> Warning </strong>: The increased warning signs in
-                  the analysis could be an alarming situation.
-                </p>
-              </div>
-              )}
-              <div className="flex justify-between items-end w-full">
-                <button
-                  className="flex items-center px-6 py-2 bg-white text-blue-600 rounded-lg hover:bg-white/90 transition"
-                  onClick={handleRedirect}
-                >
-                  <FiBookOpen className="mr-2" /> Learn More
-                </button>
-                <button
-                  className="flex items-center px-6 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition"
-                  onClick={() => navigate("/chat", { state: { issues } })}
-                >
-                  <TbRobot className="mr-2" /> Chat with an expert
-                </button>
-              </div>
-            </div>
-          </motion.div>
-
+                {issues.length >= 3 && !predictionText.includes("Distress") && (
+                  <div className="flex items-center gap-4 p-6 mt-[-7rem] mb-10 bg-red-500 backdrop-blur-sm border border-red-600 rounded-lg shadow-md">
+                    <div className="shrink-0 text-red-500 p-4 bg-white rounded-xl shadow-inner">
+                      <FiAlertTriangle className="text-4xl" />
+                    </div>
+                    <p className="text-black text-md leading-tight text-left">
+                      <strong> Warning </strong>: The increased stress warning signs in the analysis indicate an alarming situation.
+                    </p>
+                  </div>
+                )}
+  
+                {predictionText.includes("Distress") && (
+                  <div className="flex items-center gap-4 p-6 mt-[-7rem] bg-white backdrop-blur-sm border border-red-500 rounded-lg shadow-md">
+                    <div className="shrink-0 text-red-500 p-4 bg-white rounded-xl shadow-inner">
+                      <FiAlertTriangle className="text-4xl" />
+                    </div>
+                    <p className="text-black text-md leading-tight text-left">
+                      <strong> Warning </strong>: The increased warning signs in the analysis could be an alarming situation.
+                    </p>
+                  </div>
+                )}
+  
+                <div className="flex justify-between items-end w-full">
+                  <button
+                    className="flex items-center px-6 py-2 bg-white text-blue-600 rounded-lg hover:bg-white/90 transition"
+                    onClick={handleRedirect}
+                  >
+                    <FiBookOpen className="mr-2" /> Learn More
+                  </button>
+                  <button
+                    className="flex items-center px-6 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition"
+                    onClick={() => navigate("/chat", { state: { issues } })}
+                  >
+                    <TbRobot className="mr-2" /> Chat with an expert
+                  </button>
+                </div>
+              </motion.div>
+  
+              
+              <motion.div
+                className="absolute inset-0 p-8 h-full flex flex-col justify-between"
+                initial={false}
+                animate={{ rotateY: isFlipped ? 0 : -180 }}
+                transition={{ duration: 0.6 }}
+                style={{
+                  backfaceVisibility: "hidden",
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                <div>
+                  <h2 className="text-3xl font-bold mb-8 text-center">Stress Level Breakdown</h2>
+                  
+                  <div className="space-y-6">
+                    <div className="bg-blue-700 p-6 rounded-xl">
+                      <h3 className="font-bold text-xl mb-3">1–3 (Low)</h3>
+                      <p>Minimal stress that can be motivating and enhance focus. Normal daily pressure that doesn't significantly impact well-being.</p>
+                    </div>
+                    
+                    <div className="bg-green-500 p-6 rounded-xl">
+                      <h3 className="font-bold text-xl mb-3">4–6 (Moderate)</h3>
+                      <p>Manageable stress that requires attention but isn't harmful. Good opportunity to practice stress management techniques.</p>
+                    </div>
+                    
+                    <div className="bg-yellow-500 p-6 rounded-xl">
+                      <h3 className="font-bold text-xl mb-3">7–8 (High)</h3>
+                      <p>Persistent stress that may affect physical/mental health. Should be addressed with targeted strategies and lifestyle changes.</p>
+                    </div>
+                    
+                    <div className={`${predictionText === "Distress (Extremely high)" ? "bg-red-700" : "bg-red-500"} p-6 rounded-xl`}>
+  <h3 className="font-bold text-xl mb-3">9–10 (Critical)</h3>
+  <p>
+    Severe stress requiring immediate intervention. Can lead to burnout,
+    health issues, and significantly impaired functioning.
+  </p>
+</div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+  
           <div className="space-y-8">
             <motion.div
               initial={{ x: 20 }}
@@ -222,11 +445,10 @@ const Result = () => {
                   >
                     Take Action <FiChevronRight className="ml-2" />
                   </button>
-
                 </>
               )}
             </motion.div>
-
+  
             <motion.div
               initial={{ x: 20 }}
               animate={{ x: 0 }}
@@ -244,7 +466,7 @@ const Result = () => {
                 )}
                 <div className="max-w-6xl mx-auto p-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Rapid Heartbeat */}
+                    
                     {issues.includes("Rapid Heartbeat") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -266,7 +488,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Anxiety/Tension") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -288,7 +510,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Sleep Issues") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -310,7 +532,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Frequent Headaches") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -332,7 +554,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Irritability") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -354,7 +576,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Concentration Issues") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -376,7 +598,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Sadness/Low Mood") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -398,7 +620,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Loneliness/Isolation") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -420,7 +642,7 @@ const Result = () => {
                         </span>
                       </div>
                     )}
-
+  
                     {issues.includes("Weight Change") && (
                       <div className="bg-white border-2 border-green-500 rounded-lg p-6 h-32 flex flex-col items-center gap-2">
                         <svg
@@ -448,7 +670,7 @@ const Result = () => {
             </motion.div>
           </div>
         </div>
-
+  
         <div className="mt-12">
           <div className="flex flex-wrap gap-6 justify-between">
             <button
@@ -466,6 +688,35 @@ const Result = () => {
           </div>
         </div>
       </div>
+  
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          >
+            <div className="w-full max-w-md mx-auto p-6 bg-gradient-to-r from-red-600 to-red-400 text-white border-l-8 border-white rounded-xl shadow-2xl relative">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-white/20 rounded-full">
+                  <FiAlertCircle className="text-3xl text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-lg">Critical Stress Detected</p>
+                  <p className="text-sm leading-tight mt-1">
+                    Multiple signs of extreme stress have been identified.
+                    This may pose a serious risk to your well-being.
+                    Please consider seeking help or taking urgent action.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+  
       <Footer />
     </motion.div>
   );

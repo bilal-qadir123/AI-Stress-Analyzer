@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { EmailProvider } from './EmailContext';
+import { EmailProvider, useEmail } from './EmailContext';
 import AppRoutes from './AppRoutes';
 
 function App() {
   const [data, setData] = useState("");
+  const { email } = useEmail();
+  console.log("Email from App:", email);
 
   useEffect(() => {
     fetch("http://localhost:5000/") 

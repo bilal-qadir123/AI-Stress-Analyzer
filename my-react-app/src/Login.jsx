@@ -45,7 +45,7 @@ export default function Login() {
         if (!email.trim()) newErrors.email = 'Email is required'
         else if (!validateEmail(email.trim())) newErrors.email = 'Invalid email format'
         if (!password.trim()) newErrors.password = 'Password is required'
-        else if (password.trim().length < 6) newErrors.password = 'Password must be at least 6 characters'
+        else if (password.trim().length < 6 && isSignUp) newErrors.password = 'Password must be at least 6 characters'
         
         setErrors(newErrors)
         
@@ -107,7 +107,10 @@ export default function Login() {
         `
         document.head.appendChild(style)
         
-        return () => document.head.removeChild(style)
+        return () => {
+            document.body.style.overflow = "auto"
+            document.head.removeChild(style)
+        }
     }, [])
 
     const containerStyle = {

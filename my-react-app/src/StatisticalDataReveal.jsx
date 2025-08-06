@@ -93,9 +93,10 @@ const StatisticalDataReveal = ({ entry1, entry2, categories }) => {
               <span className="text-gray-400">
                 <strong>Entry 2:</strong> {v2}
               </span>
-                  <span className={`font-semibold ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-600'}`}>
-                  <strong>Diff:</strong> {diff}
-                </span>
+              <span className={`font-semibold ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-600'}`}>
+                <strong>Diff:</strong> {diff > 0 ? '-' : diff < 0 ? '+' : ''}{Math.abs(diff)}
+              </span>
+
                 </div>
                 <div className="w-full bg-gray-200 h-2 rounded mt-2">
                   <div

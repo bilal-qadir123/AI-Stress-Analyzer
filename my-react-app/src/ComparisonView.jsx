@@ -21,10 +21,6 @@ const ComparisonView = ({ data, onBack }) => {
     'Very High': 5,
   };
   
-  
-
-  
-
   const categories = [
     { key: 'anxiety_tension', label: 'Anxiety Tension' },
     { key: 'concentration_issues', label: 'Concentration Issues' },
@@ -49,10 +45,17 @@ const ComparisonView = ({ data, onBack }) => {
   const num1 = numericEntry(entry1)
   const num2 = numericEntry(entry2)
 
+  const formatTime = (timeStr) => {
+    const [h, m, s] = timeStr.split(':');
+    const hour = +h % 12 || 12;
+    const ampm = +h >= 12 ? 'PM' : 'AM';
+    return `${hour}:${m}:${s} ${ampm}`;
+  };
+  
   const getEntryLabel = (entry) => {
     if (!entry) return 'Select Entry';
-    return `${entry.created_date} ${entry.created_time}`;
-  };
+    return `${entry.created_date} ${formatTime(entry.created_time)}`;
+  };  
 
   const getComparisonColor = (val1, val2) => {
     const num1 = labelToValue[val1] || 0;
@@ -64,10 +67,13 @@ const ComparisonView = ({ data, onBack }) => {
 
 
   const getComparisonIcon = (val1, val2) => {
-    if (val2 < val1) return <ArrowDownIcon className="h-4 w-4 text-green-600 ml-2" />;
-    if (val2 > val1) return <ArrowUpIcon className="h-4 w-4 text-red-600 ml-2" />;
+    const num1 = labelToValue[val1] || 0;
+    const num2 = labelToValue[val2] || 0;
+  
+    if (num2 < num1) return <ArrowDownIcon className="h-4 w-4 text-green-600 ml-2" />;
+    if (num2 > num1) return <ArrowUpIcon className="h-4 w-4 text-red-600 ml-2" />;
     return <XMarkIcon className="h-4 w-4 text-gray-500 ml-2" />;
-  };
+  };  
 
   return (
     <motion.div
